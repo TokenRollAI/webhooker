@@ -1,0 +1,57 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+report.[0-9]*.json
+.eslintcache
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+.pnpm-store/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Build outputs / caches
+.dist/
+dist/
+build/
+.out/
+.cache/
+.tmp/
+.temp/
+.vite/
+
+# Cloudflare Workers
+.wrangler/
+.worker/
+workers-site/
+
+# Environment files
+.env
+.env.*
+.env.local
+.envrc
+
+# Editor/OS specific
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+ehthumbs.db
+Icon?
+Desktop.ini
+

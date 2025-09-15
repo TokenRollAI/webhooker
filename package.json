@@ -1,0 +1,27 @@
+{
+  "name": "webhooker",
+  "version": "1.0.0",
+  "description": "零配置 Slack-to-Feishu Webhook 转发器",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "keywords": [
+    "webhook",
+    "slack",
+    "feishu",
+    "cloudflare-workers",
+    "serverless"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "vitest": "3.2.4",
+    "wrangler": "4.37.0"
+  },
+  "dependencies": {}
+}
