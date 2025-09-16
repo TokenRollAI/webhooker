@@ -5,10 +5,13 @@
  */
 
 const PROVIDER_CAPS = {
+  slack: { raw: true, markdown: true, text: true },
   feishu: { raw: true, markdown: false, text: true },
   dingtalk: { raw: true, markdown: true, text: true },
   wechatwork: { raw: true, markdown: true, text: true },
   generic: { raw: true, markdown: true, text: true },
+  raw: { raw: true, markdown: false, text: false },
+  text: { raw: false, markdown: false, text: true },
 };
 
 export function getProviderCaps(name) {
@@ -53,4 +56,3 @@ export function asNonEmptyString(v, fallback = '') {
   if (typeof v === 'string' && v.trim().length > 0) return v;
   return fallback;
 }
-

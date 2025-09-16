@@ -323,4 +323,48 @@ describe('Webhooker - 多平台 Webhook 转发器', () => {
       expect(data.message).toContain('0/1 target');
     });
   });
+
+  describe('Provider 文档查询', () => {
+    it('应该返回指定 Provider 的文档信息', async () => {
+      const request = new Request('https://example.com/v1/providers/docs?provider=slack', {
+        method: 'GET',
+      });
+
+      const response = await worker.fetch(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.status).toBe('success');
+      expect(data.provider).toBe('slack');
+      expect(data.docs).toHaveProperty('displayName');
+      expect(data.docs).toHaveProperty('webhook');
+    });
+
+    it('应该在缺省参数时返回全部文档列表', async () => {
+      const request = new Request('https://example.com/v1/providers/docs', {
+        method: 'GET',
+      });
+
+      const response = await worker.fetch(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.status).toBe('success');
+      expect(Array.isArray(data.providers)).toBe(true);
+      expect(data.providers.some((item) => item.name === 'dingtalk')).toBe(true);
+    });
+
+    it('应该在 Provider 不存在时返回 404', async () => {
+      const request = new Request('https://example.com/v1/providers/docs?provider=unknown', {
+        method: 'GET',
+      });
+
+      const response = await worker.fetch(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.status).toBe('error');
+      expect(data.message).toContain('Documentation');
+    });
+  });
 });
