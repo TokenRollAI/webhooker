@@ -11,6 +11,7 @@ import { InputProcessorFactory } from './processors/input-processor.js';
 import { OutputProcessorFactory } from './processors/output-processor.js';
 import { Router } from './utils/router.js';
 import { fromRawPayload } from './core/canonical.js';
+import { getProviderDocs, listProviderDocs } from './providers/registry.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -20,6 +21,7 @@ export default {
     router.post('/v1/slack', handleSlackWebhook);
     router.post('/v1/raw', handleRawWebhook);
     router.get('/v1/health', handleHealthCheck);
+    router.get('/v1/providers/docs', handleProviderDocs);
 
     return router.handle(request);
   },
@@ -54,6 +56,44 @@ async function handleHealthCheck(request) {
     {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
+    }
+  );
+}
+
+/**
+ * Provider 文档查询
+ */
+async function handleProviderDocs(request) {
+  const url = new URL(request.url);
+  const providerName = url.searchParams.get('provider') || url.searchParams.get('name');
+
+  if (!providerName) {
+    return new Response(
+      JSON.stringify({
+        status: 'success',
+        providers: listProviderDocs(),
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
+  const docs = getProviderDocs(providerName);
+  if (!docs) {
+    return createErrorResponse(404, `Documentation for provider '${providerName}' not found.`);
+  }
+
+  return new Response(
+    JSON.stringify({
+      status: 'success',
+      provider: providerName,
+      docs,
+    }),
+    {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
     }
   );
 }

@@ -21,6 +21,7 @@
 POST /v1/slack    # Slack 格式输入
 POST /v1/raw      # 原始 JSON 输入
 GET  /v1/health   # 健康检查
+GET  /v1/providers/docs?provider=slack  # 查询 Provider 文档（省略 provider 参数则返回全部）
 ```
 
 ### 查询参数
@@ -64,6 +65,31 @@ GET  /v1/health   # 健康检查
 {
   "status": "error",
   "message": "错误描述"
+}
+```
+
+### Provider 文档查询
+
+调用 `GET /v1/providers/docs` 可以查看已内置 Provider 的官方文档索引：
+
+- 传入 `provider`（或 `name`）查询指定平台，例如 `/v1/providers/docs?provider=slack`
+- 省略参数则返回全部平台的文档信息列表
+
+响应示例：
+
+```json
+{
+  "status": "success",
+  "provider": "feishu",
+  "docs": {
+    "displayName": "飞书 / Lark",
+    "homepage": "https://open.feishu.cn/",
+    "webhook": "https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot",
+    "messageFormats": [
+      { "type": "text", "reference": "https://open.feishu.cn/document/server-docs/im-v1/message/send-text" }
+    ],
+    "notes": "飞书群机器人支持 text、post、interactive 等多种消息类型，卡片消息需开启透传。"
+  }
 }
 ```
 
