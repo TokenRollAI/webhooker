@@ -7,8 +7,8 @@
 - Provider 架构：输入/输出按平台解耦，结构清晰
 - Canonical v2 中间模型：envelope/body/options/ext，兼容 type/content/passthrough
 - 能力矩阵 + 渲染选择：统一选择 raw/markdown/text 并优雅降级
-- 多输入源：Slack、原始 JSON（支持透传）、通用文本
-- 多输出平台：飞书、钉钉、企业微信、通用 HTTP
+- 多输入源：Slack、飞书、原始 JSON（支持透传）、通用文本
+- 多输出平台：Slack、飞书、钉钉、企业微信、通用 HTTP
 - 智能格式转换：自动检测目标平台，尽力映射，不支持时降级
 - 原始透传：复杂载荷可直接透传为 raw，避免信息丢失
 - 零配置与高性能：URL 参数控制，运行于 Cloudflare Workers
@@ -19,16 +19,28 @@
 
 ```http
 POST /v1/slack    # Slack 格式输入
+POST /v1/feishu   # 飞书格式输入
 POST /v1/raw      # 原始 JSON 输入
 GET  /v1/health   # 健康检查
-GET  /v1/providers/docs?provider=slack  # 查询 Provider 文档（省略 provider 参数则返回全部）
 ```
 
 ### 查询参数
 
 - `targets` (必需): URL编码的目标地址，多个用逗号分隔
 - `output` (可选): 指定输出格式 (`auto`|`feishu`|`dingtalk`|`wechatwork`|`generic`)
-- `passthrough` (可选): 是否直接透传原始JSON (`true`|`false`)
+- `passthrough` (可选): 是否开启透传模式 (`true`|`false`)，开启后会将原始 JSON 序列化为字符串并作为文本发送
+
+## 📚 Provider 能力一览
+
+| Provider | 解析（Input） | 输出（Output） | 说明 |
+| --- | --- | --- | --- |
+| Slack | 文本、Block Kit、Attachments | 文本、Markdown、Blocks | 支持 Slack 入站与出站，适合监控告警等场景 |
+| 飞书 | 文本、Markdown、富文本 Post（自动转 Markdown） | 文本（自动处理 Markdown 降级） | 可将飞书消息转发到钉钉、Slack、企业微信等平台 |
+| 钉钉 | 文本、Markdown | 文本、Markdown | 自动补全标题，兼容 at 字段 |
+| 企业微信 | 文本、Markdown | 文本、Markdown | 与钉钉格式高度相似，互转方便 |
+| 原始 JSON | 任意结构 | 原始结构（POST body） | 适合调试或保留完整事件数据 |
+| 纯文本 | 纯文本 | 纯文本 | 适配极简脚本/监控系统 |
+| 通用 HTTP | Canonical v2 | Canonical v2 | 将标准化后的消息推送到自建 HTTP 服务 |
 
 ### 请求体示例
 
@@ -65,31 +77,6 @@ GET  /v1/providers/docs?provider=slack  # 查询 Provider 文档（省略 provid
 {
   "status": "error",
   "message": "错误描述"
-}
-```
-
-### Provider 文档查询
-
-调用 `GET /v1/providers/docs` 可以查看已内置 Provider 的官方文档索引：
-
-- 传入 `provider`（或 `name`）查询指定平台，例如 `/v1/providers/docs?provider=slack`
-- 省略参数则返回全部平台的文档信息列表
-
-响应示例：
-
-```json
-{
-  "status": "success",
-  "provider": "feishu",
-  "docs": {
-    "displayName": "飞书 / Lark",
-    "homepage": "https://open.feishu.cn/",
-    "webhook": "https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot",
-    "messageFormats": [
-      { "type": "text", "reference": "https://open.feishu.cn/document/server-docs/im-v1/message/send-text" }
-    ],
-    "notes": "飞书群机器人支持 text、post、interactive 等多种消息类型，卡片消息需开启透传。"
-  }
 }
 ```
 
@@ -135,6 +122,30 @@ curl -X POST "https://your-worker.your-subdomain.workers.dev/v1/raw?targets=http
     }
   }'
 
+```
+
+### 飞书输入快速示例
+
+#### 飞书 → 钉钉
+
+```bash
+curl -X POST "https://your-worker.your-subdomain.workers.dev/v1/feishu?targets=https%3A//oapi.dingtalk.com/robot/send%3Faccess_token%3Dxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "msg_type": "text",
+    "content": { "text": "来自飞书的告警，已同步到钉钉" }
+  }'
+```
+
+#### 飞书 → Slack
+
+```bash
+curl -X POST "https://your-worker.your-subdomain.workers.dev/v1/feishu?targets=https%3A//hooks.slack.com/services/T000/B000/XXXXXXXX" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "msg_type": "text",
+    "content": { "text": "飞书消息已推送到 Slack" }
+  }'
 ```
 
 ## 🚀 部署指南

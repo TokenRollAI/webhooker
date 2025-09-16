@@ -1,10 +1,19 @@
 /** WeChat Work Output Provider */
 import { selectPresentation } from '../../core/render.js';
+import { extractPassthroughText, stringifyPayload } from '../utils.js';
 
 export class WeChatWorkOutputProvider {
   transform(message) {
+    const passthroughText = extractPassthroughText(message);
+    if (passthroughText !== null) {
+      return { msgtype: 'text', text: { content: passthroughText } };
+    }
+
     const pres = selectPresentation(message, 'wechatwork');
-    if (pres.mode === 'raw') return pres.raw;
+    if (pres.mode === 'raw') {
+      const raw = stringifyPayload(pres.raw);
+      return { msgtype: 'text', text: { content: raw } };
+    }
     if (pres.mode === 'markdown') {
       return { msgtype: 'markdown', markdown: { content: pres.text } };
     }

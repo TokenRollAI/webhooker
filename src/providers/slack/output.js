@@ -1,11 +1,12 @@
 /** Slack Output Provider */
 import { selectPresentation } from '../../core/render.js';
+import { extractPassthroughText, stringifyPayload } from '../utils.js';
 
 export class SlackOutputProvider {
   transform(message) {
-    // 优先复用 Canonical v2 中 body 的结构
-    if (message?.passthrough === true && message?.type === 'raw') {
-      return message.content;
+    const passthroughText = extractPassthroughText(message);
+    if (passthroughText !== null) {
+      return { text: passthroughText, mrkdwn: false };
     }
 
     if (message?.body?.type === 'blocks' && Array.isArray(message.body.blocks)) {
@@ -25,7 +26,7 @@ export class SlackOutputProvider {
 
     const pres = selectPresentation(message, 'slack');
     if (pres.mode === 'raw') {
-      return pres.raw;
+      return { text: stringifyPayload(pres.raw), mrkdwn: false };
     }
 
     // Slack Webhook 默认支持 markdown，因此保留 text 即可
