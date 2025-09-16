@@ -1,7 +1,13 @@
 /** Raw Output Provider */
 export class RawOutputProvider {
   transform(message) {
-    return message?.content ?? message?.body ?? {};
+    if (message?.body?.type === 'raw') {
+      return message.body.raw;
+    }
+    if (message?.content !== undefined) {
+      return message.content;
+    }
+    return message?.body ?? {};
   }
 
   async send(url, payload) {

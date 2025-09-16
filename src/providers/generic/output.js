@@ -1,7 +1,9 @@
 /** Generic HTTP Output Provider */
 export class GenericHttpOutputProvider {
   transform(message) {
-    if (message?.type === 'raw' || message?.passthrough) return message.content;
+    if (message?.type === 'raw' || message?.passthrough) {
+      return message?.body?.raw ?? message?.content;
+    }
     // 支持 Canonical v2：直接返回更丰富的上下文，方便通用 HTTP 端消费
     return {
       message: message.content,

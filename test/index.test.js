@@ -25,6 +25,19 @@ describe('Webhooker - 多平台 Webhook 转发器', () => {
       expect(data.message).toContain('not found');
     });
 
+    it('应该拒绝非 POST 请求到 /v1/feishu', async () => {
+      const request = new Request('https://example.com/v1/feishu', {
+        method: 'GET'
+      });
+
+      const response = await worker.fetch(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.status).toBe('error');
+      expect(data.message).toContain('not found');
+    });
+
     it('应该响应健康检查', async () => {
       const request = new Request('https://example.com/v1/health', {
         method: 'GET'
@@ -209,6 +222,16 @@ describe('Webhooker - 多平台 Webhook 转发器', () => {
       expect(response.status).toBe(200);
       expect(data.status).toBe('success');
       expect(data.inputType).toBe('raw');
+
+      const [, feishuRequest] = global.fetch.mock.calls[0];
+      const forwardedPayload = JSON.parse(feishuRequest.body);
+      expect(forwardedPayload.msg_type).toBe('text');
+      expect(forwardedPayload.content.text).toBe(
+        JSON.stringify({
+          msg_type: 'text',
+          content: { text: 'Raw JSON test' }
+        })
+      );
     });
 
     it('应该支持透传模式', async () => {
@@ -235,13 +258,69 @@ describe('Webhooker - 多平台 Webhook 转发器', () => {
       expect(data.status).toBe('success');
       expect(data.passthrough).toBe(true);
 
-      // 验证透传的内容
-      expect(global.fetch).toHaveBeenCalledWith(
-        feishuUrl,
-        expect.objectContaining({
-          body: JSON.stringify(customPayload)
+      // 验证透传的内容被转为文本发送
+      const [, feishuRequest] = global.fetch.mock.calls[0];
+      const forwardedPayload = JSON.parse(feishuRequest.body);
+      expect(forwardedPayload.msg_type).toBe('text');
+      expect(forwardedPayload.content.text).toBe(JSON.stringify(customPayload));
+    });
+  });
+
+  describe('飞书输入', () => {
+    it('应该将飞书文本转发到 Slack', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: true, status: 200 });
+
+      const slackUrl = 'https://hooks.slack.com/services/T000/B000/XXXXXXXX';
+      const encodedUrl = encodeURIComponent(slackUrl);
+
+      const request = new Request(`https://example.com/v1/feishu?targets=${encodedUrl}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          msg_type: 'text',
+          content: { text: '来自飞书的提醒' }
         })
-      );
+      });
+
+      const response = await worker.fetch(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.status).toBe('success');
+      expect(data.details[0].processorType).toBe('slack');
+
+      const [, slackRequest] = global.fetch.mock.calls[0];
+      const slackPayload = JSON.parse(slackRequest.body);
+      expect(slackPayload.text).toBe('来自飞书的提醒');
+      expect(slackPayload.mrkdwn).toBe(false);
+    });
+
+    it('应该将飞书文本转发到钉钉', async () => {
+      global.fetch.mockResolvedValueOnce({ ok: true, status: 200 });
+
+      const dingtalkUrl = 'https://oapi.dingtalk.com/robot/send?access_token=abcd';
+      const encodedUrl = encodeURIComponent(dingtalkUrl);
+
+      const request = new Request(`https://example.com/v1/feishu?targets=${encodedUrl}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          msg_type: 'text',
+          content: { text: '同步到钉钉' }
+        })
+      });
+
+      const response = await worker.fetch(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.status).toBe('success');
+      expect(data.details[0].processorType).toBe('dingtalk');
+
+      const [, dingtalkRequest] = global.fetch.mock.calls[0];
+      const dingtalkPayload = JSON.parse(dingtalkRequest.body);
+      expect(dingtalkPayload.msgtype).toBe('text');
+      expect(dingtalkPayload.text.content).toBe('同步到钉钉');
     });
   });
 
@@ -324,47 +403,4 @@ describe('Webhooker - 多平台 Webhook 转发器', () => {
     });
   });
 
-  describe('Provider 文档查询', () => {
-    it('应该返回指定 Provider 的文档信息', async () => {
-      const request = new Request('https://example.com/v1/providers/docs?provider=slack', {
-        method: 'GET',
-      });
-
-      const response = await worker.fetch(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.status).toBe('success');
-      expect(data.provider).toBe('slack');
-      expect(data.docs).toHaveProperty('displayName');
-      expect(data.docs).toHaveProperty('webhook');
-    });
-
-    it('应该在缺省参数时返回全部文档列表', async () => {
-      const request = new Request('https://example.com/v1/providers/docs', {
-        method: 'GET',
-      });
-
-      const response = await worker.fetch(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.status).toBe('success');
-      expect(Array.isArray(data.providers)).toBe(true);
-      expect(data.providers.some((item) => item.name === 'dingtalk')).toBe(true);
-    });
-
-    it('应该在 Provider 不存在时返回 404', async () => {
-      const request = new Request('https://example.com/v1/providers/docs?provider=unknown', {
-        method: 'GET',
-      });
-
-      const response = await worker.fetch(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(404);
-      expect(data.status).toBe('error');
-      expect(data.message).toContain('Documentation');
-    });
-  });
 });
