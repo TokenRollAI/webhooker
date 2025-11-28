@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log*
+
+# Build output
+dist
+dist-worker
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+test
+coverage
+*.test.ts
+*.spec.ts
+
+# Documentation
+*.md
+!README.md
+
+# Cloudflare
+.wrangler
+.dev.vars
+
+# Misc
+.env*
+*.log

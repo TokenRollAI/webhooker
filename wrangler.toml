@@ -1,9 +1,28 @@
 name = "webhooker"
-main = "src/index.js"
-compatibility_date = "2023-12-01"
+main = "src/index.ts"
+compatibility_date = "2024-05-29"
+
+# 支持 Node.js API
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# AUTH_SECRET = "your-secret-here" # 可选：设置认证密钥
 
 [env.production]
 name = "webhooker-prod"
 
 [env.staging]
 name = "webhooker-staging"
+
+# 开发环境配置
+[dev]
+port = 8787
+local_protocol = "http"
+
+# 构建配置 (使用 esbuild)
+[build]
+command = ""
+
+# 日志配置
+[observability]
+enabled = true

@@ -1,27 +1,51 @@
 {
   "name": "webhooker",
-  "version": "1.0.0",
-  "description": "零配置 Slack-to-Feishu Webhook 转发器",
-  "main": "src/index.js",
+  "version": "2.0.0",
+  "description": "轻量级多平台 Webhook 转发网关 - 支持飞书/钉钉/企业微信/Discord/Telegram/Slack",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "wrangler dev",
+    "dev:node": "tsx watch src/node.ts",
+    "build": "tsc",
+    "build:worker": "wrangler deploy --dry-run --outdir dist-worker",
     "deploy": "wrangler deploy",
+    "start": "node dist/node.js",
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist dist-worker"
   },
   "keywords": [
     "webhook",
-    "slack",
+    "forwarder",
+    "gateway",
     "feishu",
+    "dingtalk",
+    "wechatwork",
+    "discord",
+    "telegram",
+    "slack",
     "cloudflare-workers",
     "serverless"
   ],
-  "author": "Your Name",
+  "author": "",
   "license": "MIT",
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "vitest": "3.2.4",
-    "wrangler": "4.37.0"
+  "dependencies": {
+    "hono": "^4.4.0",
+    "zod": "^3.23.0"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240529.0",
+    "@hono/node-server": "^1.11.0",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0",
+    "wrangler": "^3.60.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
