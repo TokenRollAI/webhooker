@@ -32,6 +32,11 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TokenRollAI/webhooker"
+  },
+  "homepage": "https://github.com/TokenRollAI/webhooker#readme",
   "dependencies": {
     "hono": "^4.4.0",
     "zod": "^3.23.0"
