@@ -26,3 +26,7 @@ command = ""
 # 日志配置
 [observability]
 enabled = true
+
+# [[routes]]
+# pattern = "webhooker.tokenroll.ai" // 改为你自己的自定义domain
+# custom_domain = true
