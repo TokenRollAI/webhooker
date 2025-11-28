@@ -33,6 +33,45 @@ curl -X POST "https://xxx.workers.dev/slack?feishu=TOKEN1&dd=TOKEN2" \
   -d '{"text": "hello"}'
 ```
 
+## 在线示例
+
+> ⚠️ **警告**：以下示例使用公共测试服务，**仅供测试使用**。请勿在 URL 中暴露生产环境的 token，避免泄露敏感信息。
+
+**Slack 消息转发到飞书**
+```bash
+curl -X POST "https://webhooker.tokenroll.ai/slack?feishu=YOUR_FEISHU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello from Slack!"}'
+```
+
+**飞书消息转发到钉钉**
+```bash
+curl -X POST "https://webhooker.tokenroll.ai/feishu?dd=YOUR_DINGTALK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"msg_type": "text", "content": {"text": "Hello from Feishu!"}}'
+```
+
+**钉钉消息转发到 Discord**
+```bash
+curl -X POST "https://webhooker.tokenroll.ai/dingtalk?dc=WEBHOOK_ID/WEBHOOK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"msgtype": "text", "text": {"content": "Hello from DingTalk!"}}'
+```
+
+**通用格式转发到 Telegram**
+```bash
+curl -X POST "https://webhooker.tokenroll.ai/generic?tg=BOT_TOKEN:CHAT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "通知", "text": "Hello from Webhooker!"}'
+```
+
+**同时转发到多个平台**
+```bash
+curl -X POST "https://webhooker.tokenroll.ai/slack?feishu=TOKEN1&dd=TOKEN2&dc=ID/TOKEN3" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "广播消息：同时发送到飞书、钉钉和 Discord"}'
+```
+
 ## 支持的平台
 
 **输入** (source)
